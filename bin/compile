@@ -165,6 +165,7 @@ fi
 if [[ "${HHVM_VERSION}" ]]; then
     HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
     echo "- HHVM $HHVM_VERSION" | indent
+    echo "$HHVM_DIST_URL" | indent
     curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
     echo $HHVM_VERSION > $CACHE_DIR/hhvm_version
     # make HHVM accessible
