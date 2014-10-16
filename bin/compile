@@ -228,6 +228,7 @@ status "Installing dependencies..."
 
 # check if we should use a composer.phar version bundled with the project
 if [[ -f "composer.phar" ]]; then
+echo " spot 1"
     php -r 'new Phar("composer.phar");' &> /dev/null || error "Found composer.phar in root directory, but it appears corrupted!"
     composer() {
         $engine composer.phar "$@"
@@ -236,6 +237,7 @@ if [[ -f "composer.phar" ]]; then
     composer --version 2>&1 | grep "^Composer version" > /dev/null || error "composer.phar in root directory doesn't seem to contain Composer!"
     notice_inline "Using custom composer.phar (in root dir) to install dependencies."
 else
+echo " spot 2"
     curl --silent --location "$S3_URL/composer.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
     composer() {
         $engine `which composer` "$@"
@@ -243,10 +245,11 @@ else
     export -f composer
     composer self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
 fi
+echo " spot 3"
 # echo composer version for info purposes
 # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 composer --version 2> /dev/null | tail -n 1 | indent
-
+echo " spot 4"
 # throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
 if [[ -e "$(composer config vendor-dir)" ]]; then
     warning "You have put Composer's vendor directory under version control.
@@ -257,9 +260,11 @@ then add '/$(composer config vendor-dir)/' to your '.gitignore' list to remove t
 For more information, refer to the Composer FAQ: http://bit.ly/1rlCSZU"
 fi
 
+echo " spot 5"
 # handle custom oauth keys
 COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
 if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
+echo " spot 5"
     if curl --fail --silent -H "Authorization: token $COMPOSER_GITHUB_OAUTH_TOKEN" https://api.github.com/rate_limit > /dev/null; then
         composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
         notice_inline 'Using custom GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
@@ -267,6 +272,7 @@ if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
         error 'Invalid GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
     fi
 else
+echo " spot 6"
     # don't forget to remove any stored key if it's gone from the env
     composer config -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
     if curl --silent https://api.github.com/rate_limit | python -c 'import sys, json; sys.exit((json.load(sys.stdin)["resources"]["core"]["remaining"] > 0))'; then # yes, check > 0, not < 1 - exit status of 0 will trigger the if
@@ -276,6 +282,7 @@ It's strongly recommended you use a custom OAuth token; for details, see
 http://devcenter.heroku.com/articles/php-support#custom-github-oauth-tokens"
     fi
 fi
+echo " spot 7"
 # no need for the token to stay around in the env
 unset COMPOSER_GITHUB_OAUTH_TOKEN
 
