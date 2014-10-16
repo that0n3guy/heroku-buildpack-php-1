@@ -239,11 +239,18 @@ echo " spot 1"
 else
 echo " spot 2"
     curl --silent --location "$S3_URL/composer.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
+    echo " spot 2a"
+
     composer() {
         $engine `which composer` "$@"
+        echo " spot 2b"
     }
     export -f composer
+    echo " spot 2c"
+
     composer self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
+    echo " spot 2d"
+
 fi
 echo " spot 3"
 # echo composer version for info purposes
